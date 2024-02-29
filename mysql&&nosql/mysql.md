@@ -108,3 +108,65 @@
 1. B+树非叶子节点上是不存储数据的，仅存储简直，而B树节点不仅存储键值，也存储数据，innodb中页的默认大小是16kb，如果不存储数据，那么就会存储更多的键值，相应树的阶树（节点的子节点数）就会更大，树就会更矮更胖，如此一来我们进行磁盘的i/o次数也会减少，查询效率会更高
 2. B+树索引的所有数据均存储在叶子节点，而且数据是按照顺序排列的，链表连着叶子节点，所以B+树能更好支持范围查找，排序查找，分组查找与去重
 
+### 七、聚集索引与非聚集索引区别
+
+1. 一个表中只能有一个聚集索引，而非聚集索引一个表可以存在多个
+2. 聚集索引，索引中键值的逻辑顺序决定了表中相应行的物理顺序；非聚集索引，索引的逻辑顺序与磁盘上行的物理存储顺序不同
+3. 索引通过二叉树的数据结构来描述，我们可以这么理解聚集索引：索引的叶子节点就是数据节点，而非聚集索引的叶子节点仍然是索引节点，只不过有一个指针指向对应的数据块。
+4. 聚集索引物理存储按照索引排序，非聚集索引物理存储不按照索引排序
+
+​	何时使用聚集索引和非聚集索引?
+
+| 动作描述           | 聚集索引 | 非聚集索引 |
+| ------------------ | -------- | ---------- |
+| 列经常被分组排序   | 可使用   | 可使用     |
+| 返回某范围内的数据 | 可使用   | 不可       |
+| 一个或极少不同值   | 不可     | 不可       |
+| 小数目的不同值     | 可使用   | 不可       |
+| 大数目的不同值     | 不可     | 可使用     |
+| 频繁更新的列       | 不可     | 可使用     |
+| 外键列             | 可使用   | 可使用     |
+| 主键列             | 可使用   | 可使用     |
+| 频繁修改索引列     | 不可     | 可使用     |
+
+### 八、limit 1000000 加载很慢的话，你是怎么解决的呢？
+
+```sql
+CREATE TABLE `users` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) DEFAULT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1000001 DEFAULT CHARSET=utf8;
+
+// 如果列较少，可以创建覆盖索引，直接全查，走索引快得很
+CREATE INDEX idx_users_id_username_email ON users(id, username, email);
+
+SELECT id, username, email FROM users ORDER BY id LIMIT 1000000, 10;
+```
+
+##### 方案一：如果id是连续的，可以分批循环查询，返回上次查询的最大记录（偏移量），再往下limit。（如应用市场，查询一百张appmarket表）
+
+```mysql
+select id,username from users where id > （上一次循环查询的最大id） limit 1000
+```
+
+##### 方案二：在业务允许的条件下，限制页数
+
+##### 方案三：order by + 索引 （id为索引）
+
+```mysql
+select id,username from users order by id limit 1000000，10
+SELECT a.* FROM employee a, (select id from employee where 条件 LIMIT 1000000,10 ) b where a.id=b.id
+```
+
+##### 方案四：使用分区表，你可以按照ID的范围来分区你的表。然后，你的查询可以只扫描一个分区，而不是整个表。
+
+### 九、如何选择合适的分布式主键方案?
+
+- 数据库自增长序列或者字段
+- uuid
+- redis生成id，所有服务都依赖于redis生成id
+- twitter的snowflake算法（雪花算法）
+- 利用zookeeper生成唯一id
+- monogDB的objectId
