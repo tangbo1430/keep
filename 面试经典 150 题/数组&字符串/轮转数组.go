@@ -11,6 +11,7 @@ package 数组_字符串
 
 // 思路：翻转三次即可，先全部翻转，再翻转 前k%len(num)个，再翻转k%len(num) ~ len(num)个
 func rotate(nums []int, k int) {
+	// 取模，因为入参可能会超过数组本身长度
 	index := k % len(nums)
 	Reverse(nums)
 	Reverse(nums[:index])
