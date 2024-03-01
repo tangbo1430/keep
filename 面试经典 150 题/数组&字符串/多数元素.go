@@ -1,5 +1,7 @@
 package 数组_字符串
 
+// 找众数
+
 // 投票方法，前n个数，非众数与众数会把votes抵消掉，如果votes没抵消到0，就说明那个数是众数
 func majorityElement(nums []int) int {
 	//quickSort(nums, 0, len(nums) - 1)
