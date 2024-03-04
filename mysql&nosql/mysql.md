@@ -260,3 +260,22 @@ select * from user where k1 = A AND k2 = b AND k3 = C
 ```
 
 ​	需要严格遵循sql条件的顺序，确保复合最左前缀原则
+
+### 十九、数据库自增主键可能遇到什么问题。
+
+​	使用自增主键对数据库做分库分表，可能出现主键重复，自增主键会产生表锁，做大数据迁移会不友好，自增主键还可能用完
+
+### 二十、mvcc熟悉吗，它的底层原理？
+
+​	mvcc，多版本并发控制，它是通过读取历史版本的数据，来降低并发事务冲突，从而提高并发性的一种机制
+
+##### 	需要关注的知识点:
+
+1. 事务版本号
+2. 表的隐藏列
+3. undo log
+4. read view
+
+### 二十一、数据库中间件了解吗，sharding jdbc，mycat？
+
+​	sharding-jdbc是基于jdbc驱动，无需额外的proxy，因此也无需关注proxy本身的高可用，mycat是基于proxy，它复写了mysql的协议，将mycat server伪装成一个mysql数据库，而sharding-jdbc是基于jdbc接口实现，是以jar包的形式提供轻量级服务
