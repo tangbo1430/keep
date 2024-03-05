@@ -279,3 +279,64 @@ select * from user where k1 = A AND k2 = b AND k3 = C
 ### 二十一、数据库中间件了解吗，sharding jdbc，mycat？
 
 ​	sharding-jdbc是基于jdbc驱动，无需额外的proxy，因此也无需关注proxy本身的高可用，mycat是基于proxy，它复写了mysql的协议，将mycat server伪装成一个mysql数据库，而sharding-jdbc是基于jdbc接口实现，是以jar包的形式提供轻量级服务
+
+### 二十二、mysql中in和exists的区别
+
+​	假设表A表示某企业的员工表，表B表示部门表，查询所有部门的所有员工，很容易有以下SQL:
+
+```mysql
+select * from A where deptId in (select deptId from B);
+```
+
+等价于
+
+```java
+// 先查询部门表B select deptId from B 再由部门deptId，查询A的员工 select * from A where A.deptId = B.deptId  
+List<> resultSet ;
+    for(int i=0;i<B.length;i++) {
+          for(int j=0;j<A.length;j++) {
+          if(A[i].id==B[j].id) {
+             resultSet.add(A[i]);
+             break;
+          }
+       }
+    }
+```
+
+除了使用in，我们也可以用exists实现一样的查询功能，如下：
+
+```mysql
+select * from A where exists (select 1 from B where A.deptId = B.deptId); 
+```
+
+```java
+// exists查询的理解就是，先执行主查询，获得数据后，再放到子查询中做条件验证，根据验证结果（true或者false），来决定主查询的数据结果是否得意保留。
+// select * from A,先从A表做循环 select * from B where A.deptId = B.deptId,再从B表做循环.
+
+ List<> resultSet ;
+    for(int i=0;i<A.length;i++) {
+          for(int j=0;j<B.length;j++) {
+          if(A[i].deptId==B[j].deptId) {
+             resultSet.add(A[i]);
+             break;
+          }
+       }
+    }
+```
+
+​	数据库最费劲的就是跟程序链接释放。假设链接了两次，每次做上百万次的数据集查询，查完就走，这样就只做了两次；相反建立了上百万次链接，申请链接释放反复重复，这样系统就受不了了。即mysql优化原则，就是小表驱动大表，小的数据集驱动大的数据集，从而让性能更优。 **因此，我们要选择最外层循环小的，也就是，如果B的数据量小于A，适合使用in，如果B的数据量大于A，即适合选择exists，这就是in和exists的区别。**
+
+##### 	遵循小表驱动大表的原则！
+
+### 二十三、InnoDB引擎的索引策略？
+
+1. 索引覆盖
+2. 最左前缀原则
+3. 索引下推
+4. 索引下推优化是 MySQL 5.6 引入的， 可以在索引遍历过程中，对索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数
+
+### 二十四、数据库存储日期格式时，如何考虑时区转换问题？
+
+1. ##### datetime类型适合用来记录数据的原始的创建时间，修改记录中其他字段的值，datetime字段的值不会改变，除非手动修改它
+
+2. ##### timestamp类型适合用来记录数据的最后修改时间，只要修改了记录中其他字段的值，timestamp字段的值都会被自动更新
