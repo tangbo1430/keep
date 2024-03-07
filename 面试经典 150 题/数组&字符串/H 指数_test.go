@@ -23,7 +23,7 @@ func hIndex(citations []int) int {
 	h := 0
 	count := make([]int, n+1)
 	for _, item := range citations {
-		count[min(n, item)]++ // 记录每个位置上出现的次数，min(n, item)永远记录最大长度以内的序号
+		count[min(n, item)]++ // min(n, item)记录每个元素出现的次数，放置在count数组元素值对应下标上
 		fmt.Println(count)
 	}
 
