@@ -80,4 +80,29 @@
 - map
   - 单机时可以使用map concurrentHashMap->putifAbsent guava cache-redis分布式锁
 
-​	
+### 九、高吞吐量下如何优化生产者和消费者的性能
+
+- 同一group下，多机部署，并行消费（job服务做成多节点）
+
+- 单个consumer提高消费线程数，比如设置10个协程一起消费
+
+  ```
+  // GOMAXPROCS set max goroutine to work.
+  func (g *Group) GOMAXPROCS(n int) {
+  	if n <= 0 {
+  		panic("errgroup: GOMAXPROCS must great than 0")
+  	}
+  	g.workerOnce.Do(func() {
+  		g.ch = make(chan func(context.Context) error, n)
+  		for i := 0; i < n; i++ {
+  			go func() {
+  				for f := range g.ch {
+  					g.do(f)
+  				}
+  			}()
+  		}
+  	})
+  }
+  ```
+
+- 消息生产时，批量处理，比如应用市场上报，攒够10条再发送消息
