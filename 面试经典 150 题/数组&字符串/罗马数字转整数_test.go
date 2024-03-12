@@ -1,6 +1,9 @@
 package 数组_字符串
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 // 输入: s = "III"
 // 输出: 3
@@ -21,6 +24,7 @@ func romanToInt(s string) (ans int) {
 		if i < n-1 && value < symbolValues[s[i+1]] {
 			ans -= value
 		} else {
+			// 如果是一直前一个小于后一个，那么最终结果就是最大的减去前面的
 			ans += value
 		}
 	}
@@ -28,5 +32,5 @@ func romanToInt(s string) (ans int) {
 }
 
 func TestRomanToInt(t *testing.T) {
-	romanToInt("IV")
+	fmt.Println(romanToInt("IVX"))
 }
