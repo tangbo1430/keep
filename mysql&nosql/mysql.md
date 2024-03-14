@@ -464,3 +464,64 @@ select * from A where exists (select 1 from B where A.deptId = B.deptId);
 - Union：对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序；
 - Union All：对两个结果集进行并集操作，包括重复行，不进行排序；
 - UNION的效率高于 UNION ALL
+
+### 四十三、sql生命周期
+
+1. 服务器与数据库建立连接
+2. 数据库进程拿到请求sql
+3. 解析并生成执行计划，执行
+4. 读取数据到内存，并进行逻辑处理
+5. 通过步骤一的连接，发送结果到客户端
+6. 关掉连接，释放资源
+
+### 四十四、列值为NULL时，查询是否会用到索引？
+
+​	列值为NULL也是可以走索引的，计划对列进行索引，应尽量避免把它设置为可空，因为这会让 MySQL 难以优化引用了可空列的查询，同时增加了引擎的复杂度。
+
+### 四十五、字段为什么要求定义为not null？
+
+​	null值会占用更多的字节，并且null有很多坑的。
+
+### 四十六、mysql主从复制原理
+
+主从复制原理，简言之，就三步曲，如下：
+
+- 主数据库有个bin-log二进制文件，纪录了所有增删改Sql语句。（binlog线程）
+- 从数据库把主数据库的bin-log文件的sql语句复制过来。（io线程）
+- 从数据库的relay-log重做日志文件中再执行一次这些sql语句。（Sql执行线程）
+
+具体如下：
+
+- 步骤一：主库的更新事件(update、insert、delete)被写到binlog
+- 步骤二：从库发起连接，连接到主库。
+- 步骤三：此时主库创建一个binlog dump thread，把binlog的内容发送到从库。
+- 步骤四：从库启动之后，创建一个I/O线程，读取主库传过来的binlog内容并写入到relay log
+- 步骤五：还会创建一个SQL线程，从relay log里面读取内容，从Exec_Master_Log_Pos位置开始执行读取到的更新事件，将更新内容写入到slave的db
+
+### 四十七、MySQL中DATETIME和TIMESTAMP的区别
+
+存储精度都为秒
+
+**区别：**
+
+- DATETIME 的日期范围是 1001——9999 年；TIMESTAMP 的时间范围是 1970——2038 年
+- DATETIME 存储时间与时区无关；TIMESTAMP 存储时间与时区有关，显示的值也依赖于时区
+- DATETIME 的存储空间为 8 字节；TIMESTAMP 的存储空间为 4 字节
+- DATETIME 的默认值为 null；TIMESTAMP 的字段默认不为空(not null)，默认值为当前时间(CURRENT_TIMESTAMP)
+
+### 四十八、 Innodb的事务实现原理？
+
+- 原子性：是使用 undo log来实现的，如果事务执行过程中出错或者用户执行了rollback，系统通过undo log日志返回事务开始的状态。
+- 持久性：使用 redo log来实现，只要redo log日志持久化了，当系统崩溃，即可通过redo log把数据恢复。
+- 隔离性：通过锁以及MVCC,使事务相互隔离开。
+- 一致性：通过回滚、恢复，以及并发情况下的隔离性，从而实现一致性。
+
+### 四十九、谈谈MySQL的Explain
+
+​	Explain 执行计划包含字段信息如下：分别是 id、select_type、table、partitions、type、possible_keys、key、key_len、ref、rows、filtered、Extra 等12个字段。 我们重点关注的是type，它的属性排序如下：
+
+```sql
+system  > const > eq_ref > ref  > ref_or_null >
+index_merge > unique_subquery > index_subquery > 
+range > index > ALL
+```
