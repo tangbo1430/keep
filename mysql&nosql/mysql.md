@@ -525,3 +525,17 @@ system  > const > eq_ref > ref  > ref_or_null >
 index_merge > unique_subquery > index_subquery > 
 range > index > ALL
 ```
+
+### 五十、Innodb的事务与日志的实现方式
+
+##### 	innodb两种日志redo和undo。
+
+- redo：在页修改的时候，先写到 redo log buffer 里面， 然后写到 redo log 的文件系统缓存里面(fwrite)，然后再同步到磁盘文件（ fsync）。
+
+- Undo：在 MySQL5.5 之前， undo 只能存放在 ibdata文件里面， 5.6 之后，可以通过设置 innodb_undo_tablespaces 参数把 undo log 存放在 ibdata之外。
+
+  ##### 事务是如何通过日志来实现的：
+
+  - 因为事务在修改页时，要先记 undo，在记 undo 之前要记 undo 的 redo， 然后修改数据页，再记数据页修改的 redo。 Redo（里面包括 undo 的修改） 一定要比数据页先持久化到磁盘。
+  - 当事务需要回滚时，因为有 undo，可以把数据页回滚到前镜像的 状态，崩溃恢复时，如果 redo log 中事务没有对应的 commit 记录，那么需要用 undo把该事务的修改回滚到事务开始之前。
+  - 如果有 commit 记录，就用 redo 前滚到该事务完成时并提交掉。
