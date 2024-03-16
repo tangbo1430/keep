@@ -539,3 +539,17 @@ range > index > ALL
   - 因为事务在修改页时，要先记 undo，在记 undo 之前要记 undo 的 redo， 然后修改数据页，再记数据页修改的 redo。 Redo（里面包括 undo 的修改） 一定要比数据页先持久化到磁盘。
   - 当事务需要回滚时，因为有 undo，可以把数据页回滚到前镜像的 状态，崩溃恢复时，如果 redo log 中事务没有对应的 commit 记录，那么需要用 undo把该事务的修改回滚到事务开始之前。
   - 如果有 commit 记录，就用 redo 前滚到该事务完成时并提交掉。
+
+### 五十一、一个6亿的表a，一个3亿的表b，通过外键tid关联，你如何最快的查询出满足条件的第50000到第50200中的这200条数据记录。
+
+1、如果A表TID是自增长,并且是连续的,B表的ID为索引
+
+```sql
+select * from a,b where a.tid = b.id and a.tid>500000 limit 200;
+```
+
+2、如果A表的TID不是连续的,那么就需要使用覆盖索引.TID要么是主键,要么是辅助索引,B表ID也需要有索引
+
+```sql
+select * from b , (select tid from a limit 50000,200) a where b.id = a .tid;
+```
