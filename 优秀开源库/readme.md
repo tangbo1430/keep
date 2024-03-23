@@ -13,4 +13,9 @@
   ​	采用Go语言实现的高性能本地缓存。
   
   地址：https://github.com/asong2020/go-localcache
+  
+- fasthttp
+
+  - 文章：https://mp.weixin.qq.com/s/noZfVEpv9meFpnOPnZcH1Q
+
 
