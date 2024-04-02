@@ -9,6 +9,7 @@ func levelOrder(root *TreeNode) [][]int {
 	return ans
 }
 
+// 深度优先
 func dfs(root *TreeNode, level int) {
 	if root == nil {
 		return
@@ -24,6 +25,27 @@ func dfs(root *TreeNode, level int) {
 	dfs(root.Right, level+1)
 }
 
-func bfs() {
-
+// 广度优先
+func bfs(root *TreeNode) [][]int {
+	ans := make([][]int, 0)
+	if root == nil {
+		return ans
+	}
+	outTmp := []*TreeNode{root}
+	for level := 0; len(outTmp) > 0; level++ {
+		inTmp := []*TreeNode{}
+		ans = append(ans, []int{})
+		for j := 0; j < len(outTmp); j++ {
+			node := outTmp[j]
+			ans[level] = append(ans[level], node.Val)
+			if node.Left != nil {
+				inTmp = append(inTmp, node.Left)
+			}
+			if node.Right != nil {
+				inTmp = append(inTmp, node.Right)
+			}
+		}
+		outTmp = inTmp
+	}
+	return ans
 }
