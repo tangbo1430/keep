@@ -8,12 +8,6 @@ package 链表
 // 输出：true
 // 解释：链表中有一个环，其尾部连接到第二个节点。 -4 到 2连着的
 
-// Definition for singly-linked list.
-type ListNode struct {
-	Val  int
-	Next *ListNode
-}
-
 // 思路：快慢指针，一个跑两步一个跑一个
 func hasCycle(head *ListNode) bool {
 	if head == nil || head.Next == nil {
