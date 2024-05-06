@@ -17,5 +17,11 @@
 - fasthttp
 
   - 文章：https://mp.weixin.qq.com/s/noZfVEpv9meFpnOPnZcH1Q
+  
+- excelize
 
+  - golang导出excel工具（支持导出默认格式）
+  - 地址：https://github.com/qax-os/excelize
+
+- 
 
